@@ -59,6 +59,7 @@
 #define __NR_sigsuspend     35
 #define __NR_kill           37
 #define __NR_pipe           38
+#define __NR_socket         41
 #define __NR_chdir          39
 #define __NR_alarm          40
 #define __NR_info           99

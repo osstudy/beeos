@@ -18,7 +18,6 @@
  */
 
 #include "io.h"
-#include <stdint.h>
 
 /* PIC ports */
 #define PIC1_CMD        0x0020
@@ -43,7 +42,8 @@ void pic_mask(int n)
         port = PIC2_DATA;
         n -= 8;
     }
-    val = inb(port) | (1 << n);
+    inb(port, val);
+    val |= (1 << n);
     outb(port, val);
 }
 
@@ -61,7 +61,8 @@ void pic_unmask(int n)
         port = PIC2_DATA;
         n -= 8;
     }
-    val = inb(port) & ~(1 << n);
+    inb(port, val);
+    val &= ~(1 << n);
     outb(port, val);
 }
 

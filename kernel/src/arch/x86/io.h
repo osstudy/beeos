@@ -27,78 +27,61 @@
 #ifndef _BEEOS_ARCH_X86_IO_H_
 #define _BEEOS_ARCH_X86_IO_H_
 
-#include <stdint.h> 
+#include <stdint.h>
 
 /*
- * Write one byte to an output port
+ * Write a 8-bit byte to an output port.
  *
- * @param port  Port address
- * @param val   Value
+ * @param port  Port address (uint16_t)
+ * @param val   Value (uint8_t)
  */
-static inline void outb(uint16_t port, uint8_t val)
-{
-    asm volatile("out %w1, %b0" : : "a"(val), "Nd"(port));
-}
+#define outb(port, val) \
+    asm volatile("out %w1, %b0" : : "a"(val), "Nd"(port))
 
 /*
- * Read one byte from an input port
+ * Read a 8-bit byte from an input port.
  *
- * @param port  Port address
- * @return      Read value
+ * @param port  Port address (uint16_t)
+ * @param val   Value (uint8_t)
  */
-static inline uint8_t inb(uint16_t port)
-{
-    uint8_t val;
-    asm volatile("in %b0, %w1" : "=a"(val) : "Nd"(port));
-    return val;
-}
+#define inb(port, val) \
+    asm volatile("in %b0, %w1" : "=a"(val) : "Nd"(port))
 
 /*
- * Write a 16-bits word to an output port
+ * Write a 16-bit word to an output port.
  *
- * @param port  Port address
- * @param val   Value
+ * @param port  Port address (uint16_t)
+ * @param val   Value (uint8_t)
  */
-static inline void outw(uint16_t port, uint16_t val)
-{
-    asm volatile("out %w1, %w0" : : "a"(val), "Nd"(port));
-}
+#define outw(port, val) \
+    asm volatile("out %w1, %w0" : : "a"(val), "Nd"(port))
 
 /*
- * Read a 16-bits word from an input port
+ * Read a 16-bit word from an input port.
  *
- * @param port  Port address
- * @return      Read value
+ * @param port  Port address (uint16_t)
+ * @param val   Value (uint16_t)
  */
-static inline uint16_t inw(uint16_t port)
-{
-    uint16_t val;
-    asm volatile("in %w0, %w1" : "=a"(val) : "Nd"(port));
-    return val;
-}
+#define inw(port, val) \
+    asm volatile("in %w0, %w1" : "=a"(val) : "Nd"(port))
 
-/*
- * Write a 32-bits long word to an output port
- *
- * @param port  Port address
- * @param val   Value
- */
-static inline void outl(uint16_t port, uint32_t val)
-{
-    asm volatile("out %w1, %d0" : : "a"(val), "Nd"(port));
-}
+/**
+* Write a 32-bit long word to an output port.
+*
+* @param port  Port address (uint16_t)
+* @param val   Value (uint32_t)
+*/
+#define outl(port, val) \
+    asm volatile("out %w1, %d0" : : "a"(val), "Nd"(port))
 
-/*
- * Read a 32-bits long word from an input port
+/**
+ * Read a 32-bit long word from an input port.
  *
  * @param port  Port address
  * @return      Read value
  */
-static inline uint32_t inl(uint16_t port)
-{
-    uint32_t val;
-    asm volatile("in %d0, %w1" : "=a"(val) : "Nd"(port));
-    return val;
-}
+#define inl(port, val) \
+    asm volatile("in %d0, %w1" : "=a"(val) : "Nd"(port))
+
 
 #endif /* _BEEOS_ARCH_X86_IO_H_ */

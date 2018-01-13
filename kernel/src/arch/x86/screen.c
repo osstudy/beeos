@@ -20,7 +20,6 @@
 #include "io.h"
 #include "vmem.h"
 #include "driver/screen.h"
-#include <stdint.h>
 
 #define VIDEO_BUF	((uint16_t *) (0xB8000 + KVBASE))
 

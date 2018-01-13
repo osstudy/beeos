@@ -24,7 +24,7 @@
 #ifndef _BEEOS_FS_H_
 #define _BEEOS_FS_H_
 
-#include <htable.h>
+#include "htable.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>

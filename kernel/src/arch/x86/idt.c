@@ -98,6 +98,10 @@ static void idt_entry_init(int i, uint32_t offset, uint16_t selector,
 	idt_entries[i].flags = flags;
 }
 
+static void idt_load(void)
+{
+    asm volatile("lidt [eax]" : : "a"(&idt_reg));
+}
 
 /* 
  * IDT initialization.
@@ -170,6 +174,6 @@ void idt_init(void)
     /* Software interrupt (used by syscalls) */
     idt_entry_init(128, (uint32_t) isr_128, 0x08, 0xEE);
 
-    /* Make effective by loading the new IDT register */
-    asm volatile("lidt [eax]" : : "a"(&idt_reg));
+	/* Make effective by loading the new IDT register */
+    idt_load();
 }

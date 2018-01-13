@@ -26,29 +26,42 @@
 
 static int rx_ready(void)
 {
-    return inb(PORT + 5) & 0x01;
+    int val;
+
+    inb(PORT + 5, val);
+    return (val & 0x01);
 }
 
 int uart_getchar(void)
 {
-    while (!rx_ready());
-    return inb(PORT);
+    int val;
+
+    while (!rx_ready())
+        ;
+    inb(PORT, val);
+    return val;
 }
 
 static int tx_ready(void)
 {
-    return inb(PORT +  5) & 0x20;
+    int val;
+
+    inb(PORT +  5, val);
+    return (val & 0x20);
 }
 
 void uart_putchar(int c)
 {
-    while (!tx_ready());
-    return outb(PORT, c);
+    while (!tx_ready())
+        ;
+    outb(PORT, c);
 }
 
 static void uart_handler(void)
 {
-    char c = uart_getchar();
+    char c;
+
+    c = uart_getchar();
     tty_update(c);
 }
 

@@ -246,8 +246,11 @@ static char kbd_map2[] =
  */
 static int scan_key(void)
 {
-    int code = inb(KEYB_PORT);
-    int val = inb(KEYB_ACK);
+    uint8_t code;
+    uint8_t val;
+
+    inb(KEYB_PORT, code);
+    inb(KEYB_ACK, val);
 
     outb(KEYB_ACK, val | 0x80);
     outb(KEYB_ACK, val);

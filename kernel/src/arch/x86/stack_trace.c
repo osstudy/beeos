@@ -23,15 +23,19 @@
 
 extern struct elf_file kernel_elf;
 
+#define get_ebp(val) \
+    asm volatile ("mov %%ebp, %0" : "=r"(val))
+
 void print_stack_trace()
 {
     uint32_t *ebp, *eip;
+
     /* Get the current EBP value */
-    asm volatile ("mov %%ebp, %0" : "=r"(ebp));
+    get_ebp(ebp);
     while (ebp)
     {
-        eip = ebp+1; 
-        kprintf("    [0x%x] %s\n", *eip, "");//elf_lookup_symbol(&kernel_elf, *eip));
+        eip = ebp+1;
+        kprintf("    [0x%x] %s\n", *eip, "");
         ebp = (uint32_t *) *ebp;
     }
 }

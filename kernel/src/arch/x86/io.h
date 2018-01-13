@@ -24,8 +24,8 @@
  * word-width, the l-suffix functions are long-width.
  */
 
-#ifndef _BEEOS_ARCH_X86_IO_H_
-#define _BEEOS_ARCH_X86_IO_H_
+#ifndef BEEOS_ARCH_X86_IO_H_
+#define BEEOS_ARCH_X86_IO_H_
 
 #include <stdint.h>
 
@@ -84,4 +84,4 @@
     asm volatile("in %d0, %w1" : "=a"(val) : "Nd"(port))
 
 
-#endif /* _BEEOS_ARCH_X86_IO_H_ */
+#endif /* BEEOS_ARCH_X86_IO_H_ */

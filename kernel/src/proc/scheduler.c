@@ -18,6 +18,7 @@
  */
 
 #include "kprintf.h"
+#include "panic.h"
 #include "proc.h"
 #include "timer.h"
 #include "kmalloc.h"
@@ -31,75 +32,89 @@ struct task *ready_queue;
 int sigpop(sigset_t *sigpend, sigset_t *sigmask)
 {
     int sig;
+
     /* find first non blocked signal */
     for (sig = 0; sig < SIGNALS_NUM; sig++)
+    {
         if (sigismember(sigpend, sig) == 1 && sigismember(sigmask, sig) <= 0)
+        {
+            sigdelset(sigpend, sig);
             break;
-    if (sig == SIGNALS_NUM)
-        return -1;
-    sigdelset(sigpend, sig);
-    return sig;
+        }
+    }
+    return (sig < SIGNALS_NUM) ? sig : -1;
+}
+
+static void setup_signal(int sig, struct sigaction *act)
+{
+    uint32_t *esp;
+    struct isr_frame *ifr = current_task->arch.ifr;
+
+    if (current_task->arch.sfr == NULL)
+    {
+        /* This will happen only the first time a process handles a signal */
+        current_task->arch.sfr = kmalloc(sizeof(*ifr), 0);
+        if (current_task->arch.sfr == NULL)
+            panic("No memory to handle signal (%d)\n", sig);
+        memcpy(current_task->arch.sfr, ifr, sizeof(*ifr));
+    }
+
+    /* Setup user stack frame to return in the signal handler */
+    esp = (uint32_t *)ifr->usr_esp;
+    *--esp = sig;   /* signum */
+    *--esp = (uint32_t)act->sa_restorer; /* return to the restorer */
+    ifr->usr_esp = (uint32_t)esp;
+    ifr->eip = (uint32_t)act->sa_handler;
 }
 
 int do_signal(void)
 {
-    struct sigaction *act;
+    int res = 0;
     int sig;
-    struct isr_frame *ifr;
-    uint32_t *esp;
+    struct sigaction *act;
 
     sig = sigpop(&current_task->sigpend, &current_task->sigmask);
     if (sig < 0)
         return -1; /* no unmasked signals available */
-    ifr = current_task->arch.ifr;
+
     act = &current_task->signals[sig-1];
 
     if (act->sa_handler == SIG_DFL)
     {
         if (sig == SIGCHLD || sig == SIGURG)
-            return 0; /* Ignore */
-        else if (sig == SIGSTOP || sig == SIGTSTP || sig == SIGTTIN || sig == SIGTTOU)
-            return 0; /* TODO: Stop the process */
+            res = 0; /* Ignore */
+        else if (sig == SIGSTOP || sig == SIGTSTP ||
+                 sig == SIGTTIN || sig == SIGTTOU)
+            res = 0; /* TODO: Stop the process */
         else
-            sys_exit(1); /* Terminate the process */
+            sys_exit(1); /* Terminate the process, never returns */
     }
-
-    if (!act->sa_restorer || act->sa_handler == SIG_IGN)
-        return 0; /* No way to return from signal handlers or ignore */
-
-    if (!current_task->arch.sfr)
+    else if (act->sa_handler != SIG_IGN)
     {
-        current_task->arch.sfr = kmalloc(sizeof(*ifr), 0);
-        if (!current_task->arch.sfr)
-        {
-            kprintf("[warn] no memory to handle signal (%d)\n", sig);
-            return 0;
-        }
-        memcpy(current_task->arch.sfr, ifr, sizeof(*ifr));
+        /*
+         * Note: if the restorer is NULL then we cannot handle the signal...
+         * There will be no way to return from it.
+         */
+        if (act->sa_restorer != NULL)
+            setup_signal(sig, act);
+        else
+            kprintf("undefined sigaction restorer, signal ignored");
     }
-
-    /* Adjust user stack to return in the signal handler */
-    esp = (uint32_t *)ifr->usr_esp;
-    *--esp = sig;   // signum
-    *--esp = (uint32_t)act->sa_restorer;
-    ifr->usr_esp = (uint32_t)esp;
-    ifr->eip = (uint32_t)act->sa_handler;
-
-    return 0;
+    return res;
 }
 
 void scheduler(void)
 {
     struct task *curr;
     struct task *next;
-    
+
     curr = current_task;
-    next = list_container(current_task->tasks.next, 
+    next = list_container(current_task->tasks.next,
             struct task, tasks);
 
     while (next->state != TASK_RUNNING && next != current_task)
         next = list_container(next->tasks.next, struct task, tasks);
-    
+
     if (next == current_task && next->pid != 0)
     {
         /* Nothing to run... run the idle() task */

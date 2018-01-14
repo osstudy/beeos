@@ -23,6 +23,8 @@
 
 int sys_setuid(uid_t uid)
 {
+    int res = 0;
+
     if (current_task->euid == 0)
     {
         /* If uid is not root then, after this, it will be
@@ -38,8 +40,7 @@ int sys_setuid(uid_t uid)
     }
     else
     {
-        errno = EPERM;
-        return -1;
+        res = -EPERM;
     }
-    return 0;
+    return res;
 }

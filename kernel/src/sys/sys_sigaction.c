@@ -21,18 +21,17 @@
 #include <errno.h>
 
 int sys_sigaction(int sig, const struct sigaction *act,
-        struct sigaction *oact)
+                  struct sigaction *oact)
 {
     if (sig <= 0 || sig > SIGNALS_NUM)
         return -EINVAL;
 
     /* POSIX.1: SIGSTOP and SIGKILL can't be caught nor ignored */
-    if (sig == SIGSTOP || sig == SIGKILL)
-        return 0;
-
-    if (oact != NULL)
-        *oact = current_task->signals[sig-1];
-    current_task->signals[sig-1] = *act;
-    
+    if (sig != SIGSTOP && sig != SIGKILL)
+    {
+        if (oact != NULL)
+            *oact = current_task->signals[sig-1];
+        current_task->signals[sig-1] = *act;
+    }
     return 0;
 }

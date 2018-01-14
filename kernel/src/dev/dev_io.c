@@ -20,21 +20,26 @@
 #include "dev.h"
 #include <errno.h>
 
-ssize_t dev_io(pid_t pid, dev_t dev, int rw, off_t off, 
+ssize_t dev_io(pid_t pid, dev_t dev, int rw, off_t off,
         void *buf, size_t size, int *eof)
 {
-    int dev_major = major(dev);
+    ssize_t res = 0;
+
     if (rw != DEV_READ && rw != DEV_WRITE)
         return -EIO;
 
-    switch (dev_major)
+    switch (major(dev))
     {
         case major(DEV_TTY):
         case major(DEV_CONSOLE):
-            return dev_io_tty(pid, dev, rw, off, buf, size, eof);
+            res = dev_io_tty(pid, dev, rw, off, buf, size, eof);
+            break;
         case major(DEV_INITRD):
-            return dev_io_ramdisk(pid, dev, rw, off, buf, size, eof);
+            res = dev_io_ramdisk(pid, dev, rw, off, buf, size, eof);
+            break;
         default:
-            return -ENODEV;
+            res = -ENODEV;
+            break;
     }
+    return res;
 }

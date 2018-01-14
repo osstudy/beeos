@@ -62,6 +62,5 @@ char *sys_getcwd(char *buf, size_t size)
     size -= j;
     memmove(buf, buf + j, size);
     buf[size] = '\0';
-
     return buf;
 }

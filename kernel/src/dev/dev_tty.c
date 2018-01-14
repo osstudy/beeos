@@ -22,15 +22,16 @@
 #include "proc.h"
 #include <errno.h>
 
-ssize_t dev_io_tty(pid_t pid, dev_t dev, int rw, off_t off, 
+ssize_t dev_io_tty(pid_t pid, dev_t dev, int rw, off_t off,
         void *buf, size_t size, int *eof)
 {
-    ssize_t n;
+    ssize_t n = 0;
+
     if (rw == DEV_READ)
     {
         int key;
         uint8_t *buf8 = (uint8_t *)buf;
-        n = 0;
+
         while (n < size)
         {
             key = tty_read(dev, (n == 0));
@@ -42,8 +43,11 @@ ssize_t dev_io_tty(pid_t pid, dev_t dev, int rw, off_t off,
                 break;
             }
             else if (key == -1 && n == 0)
+            {
                 /* At the moment, there is just nothing to read. */
-                return -EAGAIN;
+                n = -EAGAIN;
+                break;
+            }
             else if (key == -1 && n > 0)
                 /* Finished to read */
                 break;
@@ -53,7 +57,8 @@ ssize_t dev_io_tty(pid_t pid, dev_t dev, int rw, off_t off,
         }
     }
     else
+    {
         n = tty_write(dev, buf, size);
-
+    }
     return n;
 }

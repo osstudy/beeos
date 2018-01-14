@@ -24,22 +24,28 @@
 
 int sys_mknod(const char *pathname, mode_t mode, dev_t dev)
 {
+    int res = 0;
     struct inode *inode;
+    static ino_t next_ino = 0;
 
     inode = fs_namei(pathname);
-    if (inode != NULL)
+    if (inode == NULL)
     {
-        iput(inode);
-        return -EEXIST; /* file exists */
+        /*
+         * This should be a superblock virtual fs function.
+         * For now we assume that mknod is only for devices.
+         */
+        inode = inode_create(dev, next_ino++);
+
+        /*
+         * TODO: DEVFS is required
+         * At this point this new inode must be linked to the directory.
+         */
     }
-
-    /* This is must be a superblock virtual fs function.
-     * For now... we assume that mknod is within only for devices */
-    static ino_t next_ino = 0;
-    inode = inode_create(dev, next_ino++);
-
-    /* At this point this new inode must be linked to the directory */
-    /* DEVFS is required */
-
-    return 0;
+    else
+    {
+        iput(inode); /* Release */
+        res = -EEXIST; /* file exists */
+    }
+    return res;
 }

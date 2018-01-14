@@ -42,9 +42,10 @@ static ssize_t ramdisk_rw_block(void *buf, size_t blocknum, int doread)
 
     if (off > ramdisk.size)
         return -1;
+
     if (off + n > ramdisk.size)
         n = ramdisk.size - off;
-    
+
     if (doread)
         memcpy(buf, (char *)ramdisk.addr + off, n);
     else

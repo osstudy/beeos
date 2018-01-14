@@ -33,7 +33,6 @@ int sys_close(int fdn)
     if (fdn < 0 || OPEN_MAX <= fdn || !current_task->fd[fdn].file)
         return -EBADF;
 
-
     file = current_task->fd[fdn].file;
     current_task->fd[fdn].file = NULL;
     current_task->fd[fdn].flags = 0;
@@ -49,6 +48,5 @@ int sys_close(int fdn)
         /* TODO VFS op required. iput of pipe_inode is different */
         fs_file_free(file);
     }
-
     return fdn;
 }

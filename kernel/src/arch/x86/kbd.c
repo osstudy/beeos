@@ -60,7 +60,7 @@
 /*
  * Primary meaning of scancodes.
  */
-static char kbd_map1[] = 
+static char kbd_map1[] =
 {
     KEY_NULL,           /* 0x00 - Null */
     KEY_ESCAPE,         /* 0x01 - Escape  */
@@ -152,7 +152,7 @@ static char kbd_map1[] =
 /*
  * Secondary meaning of scancodes.
  */
-static char kbd_map2[] = 
+static char kbd_map2[] =
 {
     KEY_NULL,           /* 0x00 - Undefined */
     KEY_ESCAPE,         /* 0x01 - Escape */
@@ -262,7 +262,7 @@ static void kill_tty_group(void)
     struct task *t = current_task;
     pid_t pgid;
 
-    pgid = sys_tcgetpgrp(0); 
+    pgid = sys_tcgetpgrp(0);
     do {
         if (t->pgid == pgid)
             sys_kill(t->pid, SIGINT);
@@ -277,7 +277,7 @@ static void kbd_handler(void)
 {
     static int kbd_status = 0; /* keeps track of CTRL, ALT, SHIFT */
     int c;
-    
+
     c = scan_key();
     switch (c)
     {
@@ -289,7 +289,7 @@ static void kbd_handler(void)
     case 0xB6:  /* RShift up */
         kbd_status &= ~KBD_STATUS_SHIFT;
         break;
-    case 0x1D:  
+    case 0x1D:
         kbd_status |= KBD_STATUS_CTRL;
         break;
     case 0x9D:
@@ -322,9 +322,9 @@ static void kbd_handler(void)
             else if ((kbd_status & KBD_STATUS_ALT) != 0) {
                 /*kprintf("ALT + %c (0x%x)\n", c, c);*/
                 tty_change(c - 0x3B);
-                return;
+                break; /* Do not update the tty */
             }
-            else if (((kbd_status & KBD_STATUS_SHIFT) != 0) 
+            else if (((kbd_status & KBD_STATUS_SHIFT) != 0)
                     ^ ((kbd_status & KBD_STATUS_CAPS_LCK) != 0))
                 c = kbd_map2[c];
             else

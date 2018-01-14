@@ -38,36 +38,44 @@
 int sys_setpgid(pid_t pid, pid_t pgid)
 {
     struct task *task = NULL;
+    int res = 0;
 
     if (pgid < 0)
         return -EINVAL;
+
     if (pid == 0)
         pid = current_task->pid;
     if (pgid == 0)
         pgid = pid;
 
-    if (pid != current_task->pid) {
+    if (pid != current_task->pid)
+    {
         struct task *child, *sib;
 
         child = list_container(current_task->children.next, struct task,
                                children);
-        if (child->pptr != current_task)
-            return -ESRCH; /* Wrap around... */
-
-        sib = child;
-        do {
-            if (sib->pid == pid) {
-                task = sib;
-                break;
-            }
-            sib = list_container(sib->sibling.next, struct task, sibling);
-        } while (sib != child);
-        if (task == NULL)
-            return -ESRCH;
-    } else {
+        if (child->pptr == current_task)
+        {
+            /* We are not a hierarchy leaf */
+            sib = child;
+            do {
+                if (sib->pid == pid)
+                {
+                    task = sib;
+                    break;
+                }
+                sib = list_container(sib->sibling.next, struct task, sibling);
+            } while (sib != child);
+        }
+    }
+    else
+    {
         task = current_task;
     }
-    task->pgid = pgid;
-    return 0;
-}
 
+    if (task != NULL)
+        task->pgid = pgid;
+    else
+        res = -ESRCH;
+    return res;
+}

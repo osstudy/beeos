@@ -23,10 +23,8 @@
 pid_t sys_fork(void)
 {
     struct task *child;
-    
+
     child = task_create();
-    if (child == NULL)
-        return -1;
-    return child->pid;
+    return (child != NULL) ? child->pid : (pid_t)-1;
 }
 

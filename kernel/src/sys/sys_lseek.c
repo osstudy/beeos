@@ -28,9 +28,9 @@ off_t sys_lseek(int fd, off_t offset, int whence)
     struct file *file;
     off_t newoffset;
 
-    if (fd < 0 || OPEN_MAX <= fd || !current_task->fd[fd].file)
+    if (fd < 0 || fd >= OPEN_MAX || current_task->fd[fd].file == NULL)
         return -EBADF;
-    
+
     file = current_task->fd[fd].file;
     switch (whence)
     {
@@ -47,9 +47,10 @@ off_t sys_lseek(int fd, off_t offset, int whence)
             newoffset = -1;
             break;
     }
-    
-    if (newoffset < 0)
-        return -EINVAL;
-    file->offset = newoffset;
-    return file->offset;
+
+    if (newoffset >= 0)
+        file->offset = newoffset;
+    else
+        newoffset = -EINVAL;
+    return newoffset;
 }

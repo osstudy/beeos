@@ -24,6 +24,8 @@
 int sys_sigprocmask(int how, const sigset_t *set, sigset_t *oset)
 {
     struct task *cur = current_task;
+    int sig;
+    int res = 0;
 
     if (oset != NULL)
         memcpy(oset, &cur->sigmask, sizeof(sigset_t));
@@ -31,10 +33,11 @@ int sys_sigprocmask(int how, const sigset_t *set, sigset_t *oset)
     if (set != NULL)
     {
         if (how == SIG_SETMASK)
+        {
             memcpy(&cur->sigmask, set, sizeof(sigset_t));
+        }
         else
         {
-            int sig;
             for (sig = 0; sig < SIGNALS_NUM; sig++)
             {
                 if (sigismember(set, sig) <= 0)
@@ -44,10 +47,12 @@ int sys_sigprocmask(int how, const sigset_t *set, sigset_t *oset)
                 else if (how == SIG_UNBLOCK)
                     sigdelset(&cur->sigmask, sig);
                 else
-                    return -EINVAL;
+                {
+                    res = -EINVAL;
+                    break;
+                }
             }
         }
     }
-
-    return 0;
+    return res;
 }

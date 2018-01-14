@@ -56,7 +56,7 @@ static void stack_init(uintptr_t *base, const char *argv[], const char *envp[])
 {
     char *sp = (char *)base + ARG_MAX;
     ptrdiff_t delta = (char *)KVBASE - sp;
-    
+
     sp = push_all(&base[3], sp, argv, delta, &base[0]);
     base[1] = (uintptr_t)&base[3] + delta;
 
@@ -83,7 +83,7 @@ int sys_execve(const char *path, const char *argv[], const char *envp[])
 
     if (current_task->arch.ifr == NULL || argv == NULL)
         return -EINVAL;
-    
+
     inode = fs_namei(path);
     if (!inode)
         return -ENOENT;
@@ -95,7 +95,7 @@ int sys_execve(const char *path, const char *argv[], const char *envp[])
     /* Immediatelly copy argv and envp arrays in a temporary user stack
      * allocated via kmalloc (shared betweek virtual spaces). */
     ustack = kmalloc(ARG_MAX, 0);
-    if (!ustack)
+    if (ustack == NULL)
         return -ENOMEM;
     stack_init(ustack, argv, envp);
 
@@ -111,7 +111,7 @@ int sys_execve(const char *path, const char *argv[], const char *envp[])
         goto bad;
     }
     memcpy((char *)KVBASE-ARG_MAX, ustack, ARG_MAX);
-    
+
     /* Release user stack copy */
     kfree(ustack, ARG_MAX);
 
@@ -119,15 +119,15 @@ int sys_execve(const char *path, const char *argv[], const char *envp[])
     current_task->brk = 0;
 
     for (i = 0, off = eh.phoff; i < eh.phnum; i++, off += sizeof(ph)) {
-        
+
         if (fs_read(inode, &ph, sizeof(ph), off) != sizeof(ph)) {
             ret = -ENOEXEC;
             goto bad;
         }
-        
+
         if (ph.type != ELF_PROG_TYPE_LOAD)
             continue;
-        
+
         if (ph.memsz < ph.filesz ||
             KVBASE <= ph.vaddr + ph.memsz) {
             ret = -ENOEXEC;
@@ -149,7 +149,7 @@ int sys_execve(const char *path, const char *argv[], const char *envp[])
         }
 
         if (ph.filesz != 0) {
-            if ((ret = fs_read(inode, (void *)ph.vaddr, ph.filesz, ph.offset)) 
+            if ((ret = fs_read(inode, (void *)ph.vaddr, ph.filesz, ph.offset))
                     != ph.filesz)
                 goto bad;
         }

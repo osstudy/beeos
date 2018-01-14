@@ -30,21 +30,22 @@ ssize_t sys_read(int fdn, void *buf, size_t count)
 {
     ssize_t n;
     struct file *file;
-    
-    if (OPEN_MAX <= fdn || !current_task->fd[fdn].file)
+
+    if (OPEN_MAX <= fdn || current_task->fd[fdn].file == NULL)
         return -EBADF;
 
     file = current_task->fd[fdn].file;
-    
-    /* temporary */
-    if (!file->inode)
-        return -1;
+
+    /* FIXME: temporary */
+    if (file->inode == NULL)
+        return -EINVAL;
 
     switch (file->inode->mode & S_IFMT) {
         case S_IFBLK:
         case S_IFCHR:
-            // nr = fs_read(file->inode, buf, count, file->offset);
-            n = dev_io(0, file->inode->dev, DEV_READ, file->offset, 
+            /* TODO: use common VFS interface */
+            /*nr = fs_read(file->inode, buf, count, file->offset); */
+            n = dev_io(0, file->inode->dev, DEV_READ, file->offset,
                        buf, count, NULL);
             break;
         case S_IFDIR:
@@ -59,7 +60,8 @@ ssize_t sys_read(int fdn, void *buf, size_t count)
             n = fs_read(file->inode, buf, count, file->offset);
             break;
         default:
-            n = -1;
+            n = -EINVAL;
+            break;
     }
 
     if (n > 0)

@@ -23,6 +23,8 @@
 
 int sys_setgid(gid_t gid)
 {
+    int res = 0;
+
     if (current_task->egid == 0)
     {
         /* If gid is not root then, after this, it will be
@@ -38,8 +40,7 @@ int sys_setgid(gid_t gid)
     }
     else
     {
-        errno = EPERM;
-        return -1;
+        res = -EPERM;
     }
-    return 0;
+    return res;
 }

@@ -37,8 +37,9 @@ int tty_read(dev_t dev, int couldblock)
 {
     struct tty_st *tty;
     int c = -1;
-    int i = minor(dev) - 1;
+    int i;
 
+    i = minor(dev) - 1;
     if (major(dev) != major(DEV_CONSOLE) || i >= TTYS_TOTAL)
         return -1;
 
@@ -63,24 +64,19 @@ int tty_read(dev_t dev, int couldblock)
 void tty_putchar(dev_t dev, int c)
 {
     int i;
-    struct screen *scr;
 
     i = minor(dev) - 1;
-    if (major(dev) != major(DEV_CONSOLE) || i >= TTYS_TOTAL)
-        return;
-    scr = &scr_table[i];
-
-    screen_putchar(scr, c);
-    //if (i == tty_curr)
-    //    screen_update(scr);
-
-    /* Useful for debug */
-    uart_putchar(c);
+    if (major(dev) == major(DEV_CONSOLE) && i < TTYS_TOTAL)
+    {
+        screen_putchar(&scr_table[i], c);
+        uart_putchar(c);    /* Useful for debug */
+    }
 }
 
 ssize_t tty_write(dev_t dev, void *buf, size_t n)
 {
-    size_t i; 
+    size_t i;
+
     for (i = 0; i < n; i++)
         tty_putchar(dev, ((uint8_t *)buf)[i]);
     return (ssize_t)n;
@@ -98,7 +94,7 @@ int tty_setpgrp(pid_t pgrp)
 }
 
 
-/* 
+/*
  * This function is usually called in interrupt context by the lower
  * level interrupt handler (e.g kbd driver).
  * TODO: Move most work as possible to the process context (tty_read).
@@ -110,10 +106,10 @@ void tty_update(char c)
     struct tty_st *tty = &tty_table[tty_curr];
 
     spinlock_lock(&tty->rcond.lock);
-    
+
     if (tty->wpos >= MAX_CANON)
         tty->wpos = MAX_CANON-1;
-  
+
     if (tty->rpos > tty->wpos)
         tty->rpos = tty->wpos = 0;
 
@@ -148,33 +144,37 @@ void tty_update(char c)
 
 void tty_change(int i)
 {
-    if (i >= 0 && i < TTYS_CONSOLE) {
+    if (i >= 0 && i < TTYS_CONSOLE)
+    {
         tty_curr = i;
         scr_table[i].dirty = 1;
-        //screen_update(&scr_table[i]);
     }
 }
 
 dev_t tty_get(void)
 {
     int i;
+    dev_t dev = (dev_t)-1;
 
-    for (i = 0; i < TTYS_TOTAL; i++) {
-        if (tty_table[i].pgrp == 0) {
+    for (i = 0; i < TTYS_TOTAL; i++)
+    {
+        if (tty_table[i].pgrp == 0)
+        {
             tty_table[i].pgrp = current_task->pgid;
-            return tty_table[i].dev;
+            dev = tty_table[i].dev;
+            break;
         }
     }
-    return (dev_t)-1;
+    return dev;
 }
 
 void tty_put(dev_t dev)
 {
-    int i = minor(dev) - 1;
+    int i;
 
-    if (major(dev) != major(DEV_CONSOLE) || i >= TTYS_TOTAL)
-        return;
-    tty_table[i].pgrp = 0;
+    i = minor(dev) - 1;
+    if (major(dev) == major(DEV_CONSOLE) && i < TTYS_TOTAL)
+        tty_table[i].pgrp = 0;
 }
 
 static void tty_attr_init(struct termios *termptr)
@@ -221,15 +221,17 @@ void tty_init(void)
 {
     int i;
 
-    for (i = 0; i < TTYS_CONSOLE; i++) {
+    for (i = 0; i < TTYS_CONSOLE; i++)
+    {
         tty_struct_init(&tty_table[i], DEV_CONSOLE + i + 1);
         screen_init(&scr_table[i]);
     }
     tty_curr = 0;
 
-    uart_init();
-
-    timer_event_init(&refresh_tm, refresh_func, NULL, timer_ticks + msecs_to_ticks(100));
+    timer_event_init(&refresh_tm, refresh_func, NULL,
+                     timer_ticks + msecs_to_ticks(100));
     timer_event_add(&refresh_tm);
+
+    uart_init(); /* Debug to host console */
 }
 

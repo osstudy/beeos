@@ -38,6 +38,7 @@ int sys_open(const char *pathname, int flags, mode_t mode)
     if (pathname == NULL)
         return -EINVAL;
 
+     /* Find an unused fd slot */
     for (fdn = 0; fdn < OPEN_MAX; fdn++)
         if (current_task->fd[fdn].file == NULL)
             break;
@@ -45,10 +46,12 @@ int sys_open(const char *pathname, int flags, mode_t mode)
         return -EMFILE; /* Too many open files. */
 
 
-    // TODO : temporary just to allow to proceed
+    /* FIXME : temporary code just to allow to proceed */
     if (strcmp(pathname, "console") == 0)
     {
         inode = kmalloc(sizeof(struct inode), 0);
+        if (inode == NULL)
+            return -ENOMEM;
         memset(inode, 0, sizeof(*inode));
         inode->mode = S_IFCHR;
         inode->dev = tty_get();
@@ -70,6 +73,5 @@ int sys_open(const char *pathname, int flags, mode_t mode)
     file->inode = inode;
 
     current_task->fd[fdn].file = file;
-    
     return fdn;
 }

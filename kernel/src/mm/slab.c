@@ -89,7 +89,7 @@ static struct slab_cache *slab_slabctl_cache;
 static struct slab_cache *slab_bufctl_cache;
 
 
-static void *bufctl_hash_put(struct slab_cache *cache, struct bufctl *bufctl,
+static void *bufctl_hash_put(struct slab_cache *cache, struct bufctl *bctl,
         int loadcheck)
 {
     if (cache->hload == 0)
@@ -103,18 +103,19 @@ static void *bufctl_hash_put(struct slab_cache *cache, struct bufctl *bufctl,
     }
 
 #if 0
-    if (loadcheck && (cache->hload == 0 || (float)cache->hload/cache->hsize >= 0.75f))
+    if (loadcheck && (cache->hload == 0 ||
+                      (float)cache->hload/cache->hsize >= 0.75f))
     {
         if (bufctl_hash_resize(cache, 1) < 0 && cache->hload == 0)
             return NULL;
     }
 #endif
 
-    htable_insert(cache->htable, &bufctl->hlink, (uintptr_t)bufctl->buf,
+    htable_insert(cache->htable, &bctl->hlink, (uintptr_t)bctl->buf,
             fnzb(cache->hsize));
-    if (bufctl->hlink.next == NULL)
+    if (bctl->hlink.next == NULL)
         cache->hload++; /* added to an empty slot */
-    return bufctl->buf;
+    return bctl->buf;
 }
 
 static struct bufctl *bufctl_hash_get(struct slab_cache *cache, void *obj)
@@ -155,7 +156,7 @@ static struct bufctl *bufctl_hash_get(struct slab_cache *cache, void *obj)
  * The list is created exploiting the hash list nodes.
  */
 
-struct bufctl *bufctl_list_get(struct slabctl *slab)
+static struct bufctl *bufctl_list_get(struct slabctl *slab)
 {
     struct htable_link *lnk;
 
@@ -169,7 +170,7 @@ struct bufctl *bufctl_list_get(struct slabctl *slab)
     return struct_ptr(lnk, struct bufctl, hlink);
 }
 
-void bufctl_list_put(struct slabctl *slab, struct bufctl *bctl)
+static void bufctl_list_put(struct slabctl *slab, struct bufctl *bctl)
 {
     slab->inuse--;
     bctl->hlink.next = slab->bctls;
@@ -209,7 +210,7 @@ static struct slabctl *slab_space_alloc(struct slab_cache *cache, int flags)
     int i;
     void *obj;
     struct slabctl *slab;
-    struct bufctl *bufctl;
+    struct bufctl *bctl;
     size_t size;
     void *data;
     unsigned int order;
@@ -246,12 +247,12 @@ static struct slabctl *slab_space_alloc(struct slab_cache *cache, int flags)
     {
         if (cache->flags & SLAB_EMBED_BUFCTL)
         {
-            bufctl = BUF_TO_BUFCTL(obj, cache->objsize);
+            bctl = BUF_TO_BUFCTL(obj, cache->objsize);
         }
         else
         {
-            bufctl = slab_cache_alloc(slab_bufctl_cache, flags);
-            if (!bufctl)
+            bctl = slab_cache_alloc(slab_bufctl_cache, flags);
+            if (!bctl)
             {
                 /* temporary set to the allocated objects and undo */
                 unsigned int objs = slab->cache->slab_objs;
@@ -260,10 +261,10 @@ static struct slabctl *slab_space_alloc(struct slab_cache *cache, int flags)
                 slab->cache->slab_objs = objs;
                 return NULL;
             }
-            bufctl->buf = obj;
-            bufctl->slab = slab;
+            bctl->buf = obj;
+            bctl->slab = slab;
         }
-        bufctl_list_put(slab, bufctl);
+        bufctl_list_put(slab, bctl);
         if (cache->ctor)
             cache->ctor(obj);
     }
@@ -312,7 +313,7 @@ void *slab_cache_alloc(struct slab_cache *cache, int flags)
     return obj;
 }
 
-void slab_cache_free(struct slab_cache *cache, void *obj)
+void slab_cache_free(struct slab_cache *cache, void *ptr)
 {
     struct slabctl *slab;
     struct bufctl *bctl;
@@ -320,12 +321,12 @@ void slab_cache_free(struct slab_cache *cache, void *obj)
 
     if (cache->flags & SLAB_EMBED_BUFCTL)
     {
-        bctl = BUF_TO_BUFCTL(obj, cache->objsize);
-        slab = BUF_TO_SLABCTL(obj);
+        bctl = BUF_TO_BUFCTL(ptr, cache->objsize);
+        slab = BUF_TO_SLABCTL(ptr);
     }
     else
     {
-        bctl = bufctl_hash_get(cache, obj);
+        bctl = bufctl_hash_get(cache, ptr);
         if (!bctl)
             return;
         slab = bctl->slab;

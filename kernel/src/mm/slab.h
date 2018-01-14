@@ -17,15 +17,15 @@
  * License along with BeeOS; if not, see <http://www.gnu/licenses/>.
  */
 
-#ifndef _BEEOS_MM_SLAB_H_
-#define _BEEOS_MM_SLAB_H_
+#ifndef BEEOS_MM_SLAB_H_
+#define BEEOS_MM_SLAB_H_
 
 #include "list.h"
 #include <sys/types.h>  /* size_t */
 
 
 /** Slab cache structure */
-struct slab_cache 
+struct slab_cache
 {
     const char          *name;          /**< Cache name string  */
     unsigned int        flags;          /**< Cache flags */
@@ -43,12 +43,12 @@ struct slab_cache
 void slab_init(void);
 
 struct slab_cache *slab_cache_create(const char *name,
-        size_t size, unsigned int align, unsigned int flags, 
+        size_t size, unsigned int align, unsigned int flags,
         void (*ctor)(void *), void (*dtor)(void *));
 
 void slab_cache_delete(struct slab_cache *cache);
 
-void slab_cache_init(struct slab_cache *cache, const char *name, 
+void slab_cache_init(struct slab_cache *cache, const char *name,
         size_t objsize, unsigned int align, unsigned int flags,
         void (*ctor)(void *), void (*dtor)(void *));
 
@@ -58,4 +58,4 @@ void *slab_cache_alloc(struct slab_cache *cache, int flags);
 void slab_cache_free(struct slab_cache *cache, void *ptr);
 
 
-#endif /* _BEEOS_MM_SLAB_H_ */
+#endif /* BEEOS_MM_SLAB_H_ */

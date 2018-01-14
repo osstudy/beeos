@@ -42,7 +42,7 @@ void kmain(void)
     /*
      * Core
      */
-    
+
     kmalloc_init();
     isr_init();
 
@@ -60,8 +60,9 @@ void kmain(void)
      * Initialization finished
      */
 
-    kprintf("BeeOS v%d.%d.%d - %s\n\n", 
-            BEEOS_MAJOR, BEEOS_MINOR, BEEOS_PATCH, BEEOS_CODENAME);
+    kprintf("BeeOS v%d.%d.%d - %s\n\n",
+            BEEOS_MAJOR, BEEOS_MINOR, BEEOS_PATCH,
+            BEEOS_CODENAME);
     kprintf("Mounting root fs\n");
     sb = vfs_sb_create(ROOT_DEV, ROOT_FS_TYPE);
     if (sb == NULL)

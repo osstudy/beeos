@@ -57,15 +57,14 @@ struct fs_type
     struct sb *(*sb_create)(dev_t dev);
 };
 
-struct inode;
 
-typedef int (*inode_read_t)(struct inode *inode, void *buf, 
+typedef int (*inode_read_t)(struct inode *inode, void *buf,
             size_t count, off_t offset);
 
 struct inode_ops
 {
     inode_read_t read;
-    int (*write)(struct inode *inode, const void *buf, 
+    int (*write)(struct inode *inode, const void *buf,
             size_t count, off_t offset);
     struct inode *(*lookup)(struct inode *dir, const char *name);
     int (*readdir)(struct inode *inode, unsigned int i,

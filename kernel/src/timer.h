@@ -42,8 +42,6 @@ static inline unsigned long ticks_to_msecs(unsigned long ticks)
     return (1000L / timer_freq) * ticks;
 }
 
-struct timer_event;
-
 /** Timer event callback signature. */
 typedef void (timer_event_t)(void *data);
 
@@ -54,7 +52,7 @@ struct timer_event
     struct list_link plink;     /**< Link for timers within the same process */
     timer_event_t    *func;     /**< Timer event function callback. */
     void             *data;     /**< User context data. */
-    unsigned long    expires;   /**< Expiration time, in system ticks. */ 
+    unsigned long    expires;   /**< Expiration time, in system ticks. */
 };
 
 /**
@@ -65,7 +63,7 @@ struct timer_event
  * @param data      Data pointer to be passed to the callback.
  * @param expires   Expiration time, in system ticks.
  */
-void timer_event_init(struct timer_event *tm, timer_event_t *fn, 
+void timer_event_init(struct timer_event *tm, timer_event_t *fn,
                       void *data, unsigned long expires);
 
 /**
@@ -87,7 +85,7 @@ void timer_event_del(struct timer_event *tm);
 /**
  * Adds a timer queue to the timers queue.
  * This function also specifies the expration time in ticks.
- * If the expration time is less than or equal the current 'timer_ticks' 
+ * If the expration time is less than or equal the current 'timer_ticks'
  * value the event is immediatelly executed.
  *
  * @param tm        Timer event structure.
@@ -110,7 +108,7 @@ void timer_init(unsigned int frequency);
 void timer_arch_init(unsigned int freq);
 
 /**
- * Timer wheel update. 
+ * Timer wheel update.
  *
  * Eventually fires some asynchronous events.
  */

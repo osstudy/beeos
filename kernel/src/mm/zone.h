@@ -17,13 +17,13 @@
  * License along with BeeOS; if not, see <http://www.gnu/licenses/>.
  */
 
-#ifndef _BEEOS_MM_ZONE_H_
-#define _BEEOS_MM_ZONE_H_
+#ifndef BEEOS_MM_ZONE_H_
+#define BEEOS_MM_ZONE_H_
 
 #include "buddy.h"
 #include "list.h"
 
-/** 
+/**
  * Low memory is used to allocate buffers that must be identity mapped
  * to physical memory. That is we can pass from the physical address to
  * the virtual address by adding the kernel virtual address base.
@@ -33,17 +33,17 @@
 #define ZONE_LOW    1
 
 /** Zone descriptor */
-struct zone_st 
+struct zone_st
 {
-	char        *addr;          /**< Zone (physical) address */
-	size_t      size;           /**< Zone size */
+    char        *addr;          /**< Zone (physical) address */
+    size_t      size;           /**< Zone size */
     size_t      frame_size;     /**< Size of a single frame */
-	size_t      free_count;     /**< Number of free frames */
-	size_t      busy_count;     /**< Number of busy frames */
-	char        flags;          /**< Type of the zone (e.g. ZONE_HIGH) */
-	struct frame_st *frames;    /**< Array of frame structures in this zone */
-    struct zone_st *next;       /**< Link to next zone */
-	struct buddy_sys buddy;     /**< Buddy system for the zone */
+    size_t      free_count;     /**< Number of free frames */
+    size_t      busy_count;     /**< Number of busy frames */
+    char        flags;          /**< Type of the zone (e.g. ZONE_HIGH) */
+    struct frame_st *frames;    /**< Array of frame structures in this zone */
+    struct zone_st  *next;      /**< Link to next zone */
+    struct buddy_sys buddy;     /**< Buddy system for the zone */
 };
 
 /**
@@ -56,7 +56,7 @@ struct zone_st
  * @param flags         Zone flags (e.g. ZONE_HIGH).
  * @return              On error -1 is returned.
  */
-int zone_init(struct zone_st *ctx, void *base, size_t size,
+int zone_init(struct zone_st *ctx, void *addr, size_t size,
         size_t frame_size, int flags);
 
 /**
@@ -87,4 +87,4 @@ void zone_free(struct zone_st *ctx, void *ptr, int order);
  */
 void zone_dump(struct zone_st *ctx);
 
-#endif /* _BEEOS_MM_ZONE_H_ */
+#endif /* BEEOS_MM_ZONE_H_ */

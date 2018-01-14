@@ -21,13 +21,11 @@
 #include <sys/types.h>
 #include <string.h>
 
-struct ramdisk
+static struct
 {
     void  *addr;
     size_t size;
-};
-
-struct ramdisk ramdisk;
+} ramdisk;
 
 void ramdisk_init(void *addr, size_t size)
 {

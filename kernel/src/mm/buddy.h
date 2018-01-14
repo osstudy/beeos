@@ -17,8 +17,8 @@
  * License along with BeeOS; if not, see <http://www.gnu/licenses/>.
  */
 
-#ifndef _BEEOS_MM_BUDDY_H_
-#define _BEEOS_MM_BUDDY_H_
+#ifndef BEEOS_MM_BUDDY_H_
+#define BEEOS_MM_BUDDY_H_
 
 #include "list.h"
 
@@ -29,8 +29,8 @@ struct frame
     struct list_link    link;
     /** Number of references. */
     unsigned int        refs;
-    /** 
-     * Context specific pointer. 
+    /**
+     * Context specific pointer.
      * E.g. if allocated by slab, this points there.
      */
     void                *ctx;
@@ -45,7 +45,7 @@ struct free_list
     unsigned long       *map;
 };
 
-/** 
+/**
  * Buddy system context.
  * Allows to have a separate buddy allocator for each memory zone.
  */
@@ -99,4 +99,4 @@ void buddy_free(struct buddy_sys *ctx, struct frame *frame, unsigned int order);
  */
 void buddy_dump(struct buddy_sys *ctx, char *base);
 
-#endif /* _BEEOS_MM_BUDDY_H_ */ 
+#endif /* BEEOS_MM_BUDDY_H_ */

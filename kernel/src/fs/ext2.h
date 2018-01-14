@@ -47,7 +47,7 @@ struct ext2_disk_sb
     uint16_t pad;//padding
     uint32_t lastcheck;//time the fs was last checked
     uint32_t checkinterval;//maximum time between checks
-    uint32_t creator_os;//indicator of which OS created 
+    uint32_t creator_os;//indicator of which OS created
     uint32_t rev_level;//EXT2 revision level
     uint32_t reserved[236];//padding to 1024 bytesOS
 };
@@ -104,26 +104,6 @@ struct ext2_disk_dirent
 #define EXT2_BOOT_LOADER_INO    5
 #define EXT2_UNDEL_DIR_INO      6
 
-/*
-struct ext2_aux
-{
-    uint32_t size;
-    uint32_t gd_block;
-    uint32_t block_size;
-    ext2_group_descriptor_t *gd_table; 
-    uint32_t *block_bitmap;
-    uint32_t *inode_bitmap;
-};
-
-struct ext2_fs 
-{
-    vfs_sb_t *superblock;
-    char name[10];
-    ext2_aux_t *aux;
-    uint16_t dev;
-    vfs_ops_t *ops;
-};
-*/
 struct sb *ext2_sb_create(dev_t dev);
 
 #endif /* _BEEOS_FS_EXT2_H_ */
